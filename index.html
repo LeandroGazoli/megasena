@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador Mega-Sena Seguro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <h2>Gerador Mega-Sena</h2>
+        <p>Utilizando <code>window.crypto</code> para entropia real e algoritmo Fisher-Yates.</p>
+        
+        <div class="controls">
+            <div class="input-group">
+                <label for="qtdJogos">Jogos:</label>
+                <input type="number" id="qtdJogos" value="3" min="1" max="50">
+            </div>
+            
+            <div class="input-group">
+                <label for="qtdDezenas">Dezenas:</label>
+                <input type="number" id="qtdDezenas" value="6" min="6" max="15">
+            </div>
+            
+            <button id="btnGerar">Gerar Jogos</button>
+        </div>
+
+        <div id="resultado"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
