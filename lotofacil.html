@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerador Lotofácil Grátis | Simulador Inteligente</title>
+  <meta name="description"
+    content="Gere jogos para a Lotofácil com inteligência artificial e estatísticas. Exclua dezenas repetidas e simule seus resultados.">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body data-game="lotofacil">
+  <nav class="navbar">
+    <div class="nav-container">
+      <h1 class="logo">Loto<span>Fácil</span>Pro</h1>
+      <ul class="nav-links">
+        <li><a href="index.html">Mega-Sena</a></li>
+        <li><a href="lotofacil.html" class="active">Lotofácil</a></li>
+        <li><a href="quina.html">Quina</a></li>
+        <li><a href="artigos/index.html">Dicas</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="main-wrapper">
+    <div class="container">
+      <header>
+        <h2>Gerador Lotofácil</h2>
+        <p id="status-api">Conectando...</p>
+      </header>
+
+      <div class="controls-card">
+        <div class="input-row">
+          <div class="input-group">
+            <label>Jogos:</label>
+            <input type="number" id="qtdJogos" value="3" min="1" max="50">
+          </div>
+          <div class="input-group">
+            <label>Dezenas (15-20):</label>
+            <input type="number" id="qtdDezenas" value="15">
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <p style="font-weight: bold; margin-bottom: 10px; color: #555;">
+            Filtros Inteligentes:</p>
+          <label class="checkbox-container">
+            <input type="checkbox" id="chkExcluir18Numeros">
+            <span class="checkmark"></span>
+            Excluir dezenas dos últimos 3 concursos
+          </label>
+          <label class="checkbox-container">
+            <input type="checkbox" id="chkExcluir18Jogos">
+            <span class="checkmark"></span>
+            Excluir histórico (Últimos 18 concursos)
+          </label>
+          <button id="btnVerBloqueados" class="btn-secondary">Ver
+            bloqueios</button>
+        </div>
+
+        <button id="btnGerar" class="btn-primary"
+          style="background-color: #930089;">GERAR LOTOFÁCIL</button>
+      </div>
+
+      <div id="resultado" class="results-area"></div>
+
+      <div class="history-actions">
+        <button id="btnVerHistorico" class="btn-outline"
+          style="color:#930089; border-color:#930089;">Ver Últimos
+          Resultados</button>
+      </div>
+    </div>
+
+    <article class="content-section">
+      <h2>Como ganhar na Lotofácil?</h2>
+      <p>A Lotofácil é considerada uma das loterias mais fáceis de ganhar no
+        Brasil. Com um universo de apenas 25 números, onde 15 são sorteados, a
+        probabilidade matemática é muito maior do que na Mega-Sena.</p>
+      <h3>Estratégia dos Ciclos</h3>
+      <p>Uma estratégia muito comum na Lotofácil é observar o "ciclo" das
+        dezenas. Como são sorteados 15 números de 25, é comum que todas as 25
+        dezenas sejam sorteadas a cada 3 ou 4 concursos. Usar nosso gerador para
+        completar as dezenas que faltam sair no ciclo atual é uma tática
+        avançada.</p>
+    </article>
+  </div>
+
+  <div id="modalBloqueados" class="modal">
+    <div class="modal-content"><span class="close">&times;</span>
+      <h3>Números Bloqueados</h3>
+      <p id="desc-bloqueio">...</p>
+      <div id="listaBloqueados" class="tags-container"></div>
+    </div>
+  </div>
+  <div id="modalHistorico" class="modal">
+    <div class="modal-content large"><span class="close">&times;</span>
+      <h3>Histórico Lotofácil</h3>
+      <div class="table-responsive">
+        <table id="tabelaHistorico">
+          <thead>
+            <tr>
+              <th>Conc.</th>
+              <th>Data</th>
+              <th>Dezenas</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>

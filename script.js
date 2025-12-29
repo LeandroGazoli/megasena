@@ -1,27 +1,89 @@
-class GeradorMegaSena {
-  constructor() {
-    this.API_URL =
-      "https://raw.githubusercontent.com/eitchtee/loterias.json/refs/heads/main/data/mega-sena.json";
+class GeradorLoteria {
+  constructor(tipoJogo) {
+    // Configurações de cada jogo
+    const CONFIGS = {
+      "mega-sena": {
+        nome: "Mega-Sena",
+        url: "https://raw.githubusercontent.com/eitchtee/loterias.json/refs/heads/main/data/mega-sena.json",
+        totalNumeros: 60, // 1 a 60
+        minDezenas: 6,
+        maxDezenas: 15, // Pode variar, mas 15 é o padrão de segurança
+        padraoDezenas: 6,
+        exibeZero: false, // Ex: 1 a 60
+      },
+      lotofacil: {
+        nome: "Lotofácil",
+        url: "https://raw.githubusercontent.com/eitchtee/loterias.json/refs/heads/main/data/lotofacil.json",
+        totalNumeros: 25, // 1 a 25
+        minDezenas: 15,
+        maxDezenas: 20,
+        padraoDezenas: 15,
+        exibeZero: false,
+      },
+      quina: {
+        nome: "Quina",
+        url: "https://raw.githubusercontent.com/eitchtee/loterias.json/refs/heads/main/data/quina.json",
+        totalNumeros: 80, // 1 a 80
+        minDezenas: 5,
+        maxDezenas: 15,
+        padraoDezenas: 5,
+        exibeZero: false,
+      },
+      lotomania: {
+        nome: "Lotomania",
+        url: "https://raw.githubusercontent.com/eitchtee/loterias.json/refs/heads/main/data/lotomania.json",
+        totalNumeros: 100, // 00 a 99
+        minDezenas: 50,
+        maxDezenas: 50, // Na Lotomania o jogo é fixo em 50
+        padraoDezenas: 50,
+        exibeZero: true, // Lotomania usa 00
+      },
+    };
+
+    this.config = CONFIGS[tipoJogo];
+    if (!this.config) throw new Error("Jogo não configurado: " + tipoJogo);
+
     this.historico = [];
-
-    // Dois sets diferentes de bloqueio
-    this.bloqueio18Numeros = new Set(); // Últimos 3 jogos (3x6 = 18 dezenas)
-    this.bloqueio18Concursos = new Set(); // Últimos 18 concursos
-
+    this.bloqueioNumeros = new Set();
+    this.bloqueioConcursos = new Set();
     this.status = "carregando";
+
+    // Ajusta os inputs do HTML para os limites do jogo atual
+    this.ajustarInterface();
+  }
+
+  ajustarInterface() {
+    const inputDezenas = document.getElementById("qtdDezenas");
+    if (inputDezenas) {
+      inputDezenas.min = this.config.minDezenas;
+      inputDezenas.max = this.config.maxDezenas;
+      inputDezenas.value = this.config.padraoDezenas;
+
+      // Se min e max são iguais (ex: Lotomania), bloqueia o input
+      if (this.config.minDezenas === this.config.maxDezenas) {
+        inputDezenas.disabled = true;
+        inputDezenas.title = "Neste jogo a quantidade é fixa.";
+      }
+    }
+
+    // Atualiza título da página se necessário
+    const titulo = document.querySelector("h2");
+    if (titulo && titulo.innerText.includes("Gerador")) {
+      titulo.innerHTML = `Gerador <span>${this.config.nome}</span>`;
+    }
   }
 
   async iniciar() {
     const statusEl = document.getElementById("status-api");
     try {
-      statusEl.innerText = "🔄 Baixando histórico atualizado...";
+      statusEl.innerText = `🔄 Baixando resultados da ${this.config.nome}...`;
 
-      const response = await fetch(this.API_URL);
-      if (!response.ok) throw new Error("Erro na rede ao baixar JSON");
+      const response = await fetch(this.config.url);
+      if (!response.ok) throw new Error("Erro na rede");
 
       let dados = await response.json();
 
-      // Normalização dos dados (suporta maiúsculas/minúsculas/resultado)
+      // Normalização Universal
       this.historico = dados.map((item) => {
         return {
           concurso: item.concurso || item.Concurso || 0,
@@ -31,42 +93,43 @@ class GeradorMegaSena {
       });
 
       this.historico.sort((a, b) => b.concurso - a.concurso);
-
       this.processarBloqueios();
 
       this.status = "pronto";
 
       if (this.historico.length > 0) {
-        statusEl.innerHTML = `✅ Base atualizada: <b>${this.historico[0].concurso}</b> concursos.`;
+        statusEl.innerHTML = `✅ Base ${this.config.nome}: <b>${this.historico[0].concurso}</b> concursos.`;
         statusEl.style.color = "#209869";
       }
 
       this.atualizarTabelaHistorico();
     } catch (error) {
-      console.error("Erro:", error);
+      console.error(error);
       this.status = "erro";
-      statusEl.innerText = "⚠️ Erro ao ler dados. Filtros desativados.";
+      statusEl.innerText = "⚠️ Erro ao baixar dados. Modo Offline.";
       statusEl.style.color = "#d9534f";
     }
   }
 
   processarBloqueios() {
-    if (!this.historico || this.historico.length === 0) return;
+    if (!this.historico.length) return;
 
-    // 1. Calcular bloqueio leve (Últimos 18 números = Últimos 3 Jogos)
-    const ultimos3Jogos = this.historico.slice(0, 3);
-    this.bloqueio18Numeros.clear();
-    ultimos3Jogos.forEach((s) => {
+    // Filtro 1: Últimos 18 números (aprox. 3 jogos na Mega, mas varia nos outros)
+    // Para Lotofácil (15 num por jogo), 18 numeros é pouco mais de 1 jogo.
+    // Vamos manter a lógica "Últimos 3 Concursos" para o filtro leve
+    const ultimos3 = this.historico.slice(0, 3);
+    this.bloqueioNumeros.clear();
+    ultimos3.forEach((s) => {
       if (Array.isArray(s.dezenas))
-        s.dezenas.forEach((d) => this.bloqueio18Numeros.add(parseInt(d)));
+        s.dezenas.forEach((d) => this.bloqueioNumeros.add(parseInt(d)));
     });
 
-    // 2. Calcular bloqueio pesado (Últimos 18 Jogos completos)
-    const ultimos18Jogos = this.historico.slice(0, 18);
-    this.bloqueio18Concursos.clear();
-    ultimos18Jogos.forEach((s) => {
+    // Filtro 2: Últimos 18 Concursos Completos
+    const ultimos18 = this.historico.slice(0, 18);
+    this.bloqueioConcursos.clear();
+    ultimos18.forEach((s) => {
       if (Array.isArray(s.dezenas))
-        s.dezenas.forEach((d) => this.bloqueio18Concursos.add(parseInt(d)));
+        s.dezenas.forEach((d) => this.bloqueioConcursos.add(parseInt(d)));
     });
   }
 
@@ -82,30 +145,24 @@ class GeradorMegaSena {
     return randomValue % range;
   }
 
-  /**
-   * @param {number} qtdDezenas
-   * @param {string} tipoFiltro 'nenhum', '18numeros', '18jogos'
-   */
   gerarJogo(qtdDezenas, tipoFiltro) {
     let pool = [];
     let setBloqueio = null;
 
-    // Define qual Set usar baseado no filtro escolhido
-    if (tipoFiltro === "18numeros") setBloqueio = this.bloqueio18Numeros;
-    if (tipoFiltro === "18jogos") setBloqueio = this.bloqueio18Concursos;
+    if (tipoFiltro === "leve") setBloqueio = this.bloqueioNumeros;
+    if (tipoFiltro === "pesado") setBloqueio = this.bloqueioConcursos;
 
-    for (let i = 1; i <= 60; i++) {
-      // Se existe um filtro ativo e o número está nele, pula
-      if (setBloqueio && setBloqueio.has(i)) {
-        continue;
-      }
+    // Lógica para Lotomania (0 a 99) vs Outros (1 a N)
+    const inicio = this.config.exibeZero ? 0 : 1;
+    const fim = this.config.exibeZero ? 99 : this.config.totalNumeros;
+
+    for (let i = inicio; i <= fim; i++) {
+      if (setBloqueio && setBloqueio.has(i)) continue;
       pool.push(i);
     }
 
     if (pool.length < qtdDezenas) {
-      throw new Error(
-        `Filtro muito restritivo. Sobraram apenas ${pool.length} números.`
-      );
+      throw new Error(`Filtro muito restritivo. Tente diminuir o filtro.`);
     }
 
     const resultado = [];
@@ -113,14 +170,18 @@ class GeradorMegaSena {
 
     for (let i = 0; i < qtdDezenas; i++) {
       const range = poolDisponivel.length;
-      const indiceSorteado = this._indiceAleatorioSeguro(range);
-      resultado.push(poolDisponivel[indiceSorteado]);
-      poolDisponivel.splice(indiceSorteado, 1);
+      const idx = this._indiceAleatorioSeguro(range);
+      resultado.push(poolDisponivel[idx]);
+      poolDisponivel.splice(idx, 1);
     }
 
     return resultado
       .sort((a, b) => a - b)
-      .map((n) => n.toString().padStart(2, "0"));
+      .map((n) => {
+        // Formatação especial para Lotomania (0 vira "00")
+        if (this.config.exibeZero && n === 0) return "00";
+        return n.toString().padStart(2, "0");
+      });
   }
 
   verificarDuplicidade(jogoGerado) {
@@ -129,51 +190,38 @@ class GeradorMegaSena {
 
     return this.historico.find((s) => {
       if (!Array.isArray(s.dezenas)) return false;
-      const dezenasFormatadas = s.dezenas
-        .map((d) => parseInt(d).toString().padStart(2, "0"))
+
+      // Padronização para comparação
+      const dezenasHist = s.dezenas
+        .map((d) => {
+          const n = parseInt(d);
+          if (this.config.exibeZero && n === 0) return "00";
+          return n.toString().padStart(2, "0");
+        })
         .sort()
         .join("-");
-      return dezenasFormatadas === assinatura;
+
+      return dezenasHist === assinatura;
     });
   }
 
-  // Atualiza o modal com a lista correta dependendo do que o usuário selecionou
-  atualizarModalBloqueados(tipoFiltro) {
-    const container = document.getElementById("listaBloqueados");
-    const desc = document.getElementById("desc-bloqueio");
-
-    let setUsado = new Set();
-
-    if (tipoFiltro === "18numeros") {
-      setUsado = this.bloqueio18Numeros;
-      desc.innerText = `Mostrando as dezenas dos últimos 3 concursos (Total: ${setUsado.size}):`;
-    } else if (tipoFiltro === "18jogos") {
-      setUsado = this.bloqueio18Concursos;
-      desc.innerText = `Mostrando as dezenas dos últimos 18 concursos (Total: ${setUsado.size}):`;
-    }
-
-    const arrayBloqueados = Array.from(setUsado).sort((a, b) => a - b);
-    container.innerHTML = arrayBloqueados
-      .map((n) => `<span class="tag">${n.toString().padStart(2, "0")}</span>`)
-      .join("");
-  }
-
+  // --- Métodos de UI (Iguais, só ajustados para contexto genérico) ---
   atualizarTabelaHistorico() {
     const tbody = document.querySelector("#tabelaHistorico tbody");
     if (!tbody) return;
-    const ultimos50 = this.historico.slice(0, 50);
-    tbody.innerHTML = ultimos50
+    const ultimos20 = this.historico.slice(0, 20);
+    tbody.innerHTML = ultimos20
       .map(
         (s) => `
             <tr>
                 <td>${s.concurso}</td>
                 <td>${s.data}</td>
-                <td style="font-weight:bold; color: #209869;">
+                <td style="color: var(--primary); font-weight:bold;">
                     ${
                       Array.isArray(s.dezenas)
                         ? s.dezenas
                             .map((d) => parseInt(d).toString().padStart(2, "0"))
-                            .join(" - ")
+                            .join(" ")
                         : "-"
                     }
                 </td>
@@ -182,69 +230,70 @@ class GeradorMegaSena {
       )
       .join("");
   }
+
+  atualizarModalBloqueados(tipoFiltro) {
+    const container = document.getElementById("listaBloqueados");
+    const desc = document.getElementById("desc-bloqueio");
+    let setUsado =
+      tipoFiltro === "leve" ? this.bloqueioNumeros : this.bloqueioConcursos;
+
+    desc.innerText = `Mostrando ${setUsado.size} números bloqueados:`;
+
+    const lista = Array.from(setUsado).sort((a, b) => a - b);
+    container.innerHTML = lista
+      .map((n) => {
+        let txt = n.toString().padStart(2, "0");
+        if (this.config.exibeZero && n === 0) txt = "00";
+        return `<span class="tag">${txt}</span>`;
+      })
+      .join("");
+  }
 }
 
+// --- INICIALIZAÇÃO INTELIGENTE ---
 document.addEventListener("DOMContentLoaded", () => {
-  const app = new GeradorMegaSena();
+  // Detecta qual jogo carregar baseado num atributo do body (veja passo 2)
+  const gameType = document.body.getAttribute("data-game") || "mega-sena";
+
+  const app = new GeradorLoteria(gameType);
   app.iniciar();
 
+  // Eventos (Botões)
   const btnGerar = document.getElementById("btnGerar");
-  const chk18Numeros = document.getElementById("chkExcluir18Numeros");
-  const chk18Jogos = document.getElementById("chkExcluir18Jogos");
+  const chkLeve = document.getElementById("chkExcluir18Numeros"); // "Excluir Recentes"
+  const chkPesado = document.getElementById("chkExcluir18Jogos"); // "Excluir Histórico"
   const resultadoDiv = document.getElementById("resultado");
-  const infoFiltro = document.getElementById("info-filtro");
-  const btnVerBloqueados = document.getElementById("btnVerBloqueados");
 
-  // === Lógica de exclusividade dos Checkboxes ===
-  // Se clicar em um, desmarca o outro
-  chk18Numeros.addEventListener("change", () => {
-    if (chk18Numeros.checked) {
-      chk18Jogos.checked = false;
-      infoFiltro.innerText = `Serão excluídas aprox. 18 dezenas (Ref: últimos 3 concursos).`;
-      btnVerBloqueados.style.display = "inline-block";
-    } else {
-      infoFiltro.innerText = "Nenhum filtro selecionado.";
-      btnVerBloqueados.style.display = "none";
-    }
-  });
-
-  chk18Jogos.addEventListener("change", () => {
-    if (chk18Jogos.checked) {
-      chk18Numeros.checked = false;
-      infoFiltro.innerText = `Filtro rigoroso: Serão excluídas todas as dezenas dos últimos 18 concursos.`;
-      btnVerBloqueados.style.display = "inline-block";
-    } else {
-      infoFiltro.innerText = "Nenhum filtro selecionado.";
-      btnVerBloqueados.style.display = "none";
-    }
-  });
+  // Toggle Checkboxes
+  if (chkLeve)
+    chkLeve.addEventListener("change", () => {
+      if (chkLeve.checked) chkPesado.checked = false;
+    });
+  if (chkPesado)
+    chkPesado.addEventListener("change", () => {
+      if (chkPesado.checked) chkLeve.checked = false;
+    });
 
   btnGerar.addEventListener("click", () => {
     const qtdJogos = parseInt(document.getElementById("qtdJogos").value);
     const qtdDezenas = parseInt(document.getElementById("qtdDezenas").value);
 
-    // Determina qual filtro está ativo
-    let tipoFiltro = "nenhum";
-    if (chk18Numeros.checked) tipoFiltro = "18numeros";
-    if (chk18Jogos.checked) tipoFiltro = "18jogos";
-
-    if (qtdDezenas < 6 || qtdDezenas > 15) {
-      alert("Escolha entre 6 e 15 dezenas.");
-      return;
-    }
+    let filtro = null;
+    if (chkLeve && chkLeve.checked) filtro = "leve";
+    if (chkPesado && chkPesado.checked) filtro = "pesado";
 
     resultadoDiv.innerHTML = "";
 
     try {
       for (let i = 0; i < qtdJogos; i++) {
-        const numeros = app.gerarJogo(qtdDezenas, tipoFiltro);
+        const numeros = app.gerarJogo(qtdDezenas, filtro);
         const jaSaiu = app.verificarDuplicidade(numeros);
 
         const div = document.createElement("div");
         div.className = "jogo-linha";
 
         let html = `<div>
-                    <span style="font-size:0.8rem; font-weight:bold; color:#777; display:block; margin-bottom:4px;">JOGO ${
+                    <span style="font-size:0.8rem; font-weight:bold; color:#777; display:block;">JOGO ${
                       i + 1
                     }</span>
                     <span class="jogo-numeros">${numeros.join(" - ")}</span>
@@ -253,9 +302,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (jaSaiu) {
           div.style.borderLeftColor = "#d9534f";
           div.style.background = "#fff5f5";
-          html += `<div class="aviso-premio">⚠️ JÁ SAIU: CONC. ${jaSaiu.concurso}</div>`;
+          html += `<div class="aviso-premio">⚠️ JÁ SAIU NO CONCURSO ${jaSaiu.concurso}</div>`;
         }
-
         div.innerHTML = html;
         resultadoDiv.appendChild(div);
       }
@@ -265,29 +313,27 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Modais
-  const modalBloq = document.getElementById("modalBloqueados");
-  const modalHist = document.getElementById("modalHistorico");
-
-  btnVerBloqueados.onclick = () => {
-    let tipo = "nenhum";
-    if (chk18Numeros.checked) tipo = "18numeros";
-    if (chk18Jogos.checked) tipo = "18jogos";
-
-    app.atualizarModalBloqueados(tipo);
-    modalBloq.style.display = "block";
-  };
+  const btnVerBloq = document.getElementById("btnVerBloqueados");
+  if (btnVerBloq)
+    btnVerBloq.onclick = () => {
+      let tipo = null;
+      if (chkLeve.checked) tipo = "leve";
+      if (chkPesado.checked) tipo = "pesado";
+      if (tipo) {
+        app.atualizarModalBloqueados(tipo);
+        document.getElementById("modalBloqueados").style.display = "block";
+      }
+    };
 
   document.getElementById("btnVerHistorico").onclick = () =>
-    (modalHist.style.display = "block");
-
-  document.querySelectorAll(".close").forEach((el) => {
-    el.onclick = function () {
-      this.parentElement.parentElement.style.display = "none";
-    };
-  });
-
-  window.onclick = (event) => {
-    if (event.target == modalBloq) modalBloq.style.display = "none";
-    if (event.target == modalHist) modalHist.style.display = "none";
+    (document.getElementById("modalHistorico").style.display = "block");
+  document.querySelectorAll(".close").forEach(
+    (el) =>
+      (el.onclick = function () {
+        this.parentElement.parentElement.style.display = "none";
+      })
+  );
+  window.onclick = (e) => {
+    if (e.target.classList.contains("modal")) e.target.style.display = "none";
   };
 });

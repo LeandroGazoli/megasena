@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerador Quina Grátis | Simulador Diário</title>
+  <meta name="description"
+    content="Gerador de números para a Quina. Sorteios diários exigem estratégias rápidas. Use nossa IA para gerar seus palpites.">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body data-game="quina">
+  <nav class="navbar">
+    <div class="nav-container">
+      <h1 class="logo" style="color: #2c3e50;">Quina<span>Pro</span></h1>
+      <ul class="nav-links">
+        <li><a href="index.html">Mega-Sena</a></li>
+        <li><a href="lotofacil.html">Lotofácil</a></li>
+        <li><a href="quina.html" class="active">Quina</a></li>
+        <li><a href="artigos/index.html">Dicas</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="main-wrapper">
+    <div class="container">
+      <header>
+        <h2 style="color: #3825cf;">Gerador Quina</h2>
+        <p id="status-api">Conectando...</p>
+      </header>
+
+      <div class="controls-card">
+        <div class="input-row">
+          <div class="input-group">
+            <label>Jogos:</label>
+            <input type="number" id="qtdJogos" value="3">
+          </div>
+          <div class="input-group">
+            <label>Dezenas (5-15):</label>
+            <input type="number" id="qtdDezenas" value="5">
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <p style="font-weight: bold; margin-bottom: 10px; color: #555;">
+            Filtros:</p>
+          <label class="checkbox-container">
+            <input type="checkbox" id="chkExcluir18Numeros">
+            <span class="checkmark"></span>
+            Excluir dezenas recentes
+          </label>
+          <label class="checkbox-container">
+            <input type="checkbox" id="chkExcluir18Jogos">
+            <span class="checkmark"></span>
+            Excluir histórico (Últimos 18 concursos)
+          </label>
+          <button id="btnVerBloqueados" class="btn-secondary">Ver
+            bloqueios</button>
+        </div>
+
+        <button id="btnGerar" class="btn-primary"
+          style="background-color: #3825cf;">GERAR QUINA</button>
+      </div>
+
+      <div id="resultado" class="results-area"></div>
+
+      <div class="history-actions">
+        <button id="btnVerHistorico" class="btn-outline"
+          style="color:#3825cf; border-color:#3825cf;">Ver Últimos
+          Resultados</button>
+      </div>
+    </div>
+
+    <article class="content-section">
+      <h2>Estratégias para a Quina</h2>
+      <p>A Quina tem sorteios diários (exceto domingo), o que gera uma
+        quantidade enorme de dados estatísticos. Com 80 números disponíveis, é a
+        loteria com o maior "volante" entre as principais.</p>
+      <h3>A regra dos 80</h3>
+      <p>Devido ao grande número de opções (1 a 80) e apenas 5 sorteados, a
+        dispersão é alta. Raramente saem números em sequência (ex: 10, 11).
+        Nosso gerador prioriza a distribuição espaçada das dezenas para imitar o
+        padrão de sorteios reais.</p>
+    </article>
+  </div>
+
+  <div id="modalBloqueados" class="modal">
+    <div class="modal-content"><span class="close">&times;</span>
+      <h3>Bloqueados</h3>
+      <p id="desc-bloqueio">...</p>
+      <div id="listaBloqueados" class="tags-container"></div>
+    </div>
+  </div>
+  <div id="modalHistorico" class="modal">
+    <div class="modal-content large"><span class="close">&times;</span>
+      <h3>Histórico Quina</h3>
+      <div class="table-responsive">
+        <table id="tabelaHistorico">
+          <thead>
+            <tr>
+              <th>Conc.</th>
+              <th>Data</th>
+              <th>Dezenas</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
