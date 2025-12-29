@@ -4,64 +4,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador Mega-Sena Profissional</title>
+    <meta name="description"
+        content="Gerador de números aleatórios para Mega-Sena com base estatística e verificação de resultados passados. Aumente suas chances com matemática.">
+    <title>Gerador Mega-Sena Profissional | Estatísticas e Jogos</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-    <div class="container">
-        <header>
-            <h2>Gerador Mega-Sena</h2>
-            <p id="status-api">Conectando à base de dados...</p>
-        </header>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="logo">MegaSena<span>Pro</span></h1>
+            <ul class="nav-links">
+                <li><a href="index.html">Início</a></li>
+                <li><a href="#como-funciona">Como Funciona</a></li>
+                <li><a href="termos.html">Termos de Uso</a></li>
+                <li><a href="privacidade.html">Privacidade</a></li>
+            </ul>
+        </div>
+    </nav>
 
-        <div class="controls-card">
-            <div class="input-row">
-                <div class="input-group">
-                    <label>Jogos:</label>
-                    <input type="number" id="qtdJogos" value="3" min="1"
-                        max="50">
+    <div class="main-wrapper">
+
+        <div class="container">
+            <header>
+                <h2>Gerador Inteligente</h2>
+                <p id="status-api">Conectando à base de dados...</p>
+            </header>
+
+            <div class="controls-card">
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Jogos:</label>
+                        <input type="number" id="qtdJogos" value="3" min="1"
+                            max="50">
+                    </div>
+                    <div class="input-group">
+                        <label>Dezenas:</label>
+                        <input type="number" id="qtdDezenas" value="6" min="6"
+                            max="15">
+                    </div>
                 </div>
-                <div class="input-group">
-                    <label>Dezenas:</label>
-                    <input type="number" id="qtdDezenas" value="6" min="6"
-                        max="15">
+
+                <div class="filter-section">
+                    <p
+                        style="font-weight: bold; margin-bottom: 10px; color: #555;">
+                        Filtros de Exclusão:</p>
+
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="chkExcluir18Numeros">
+                        <span class="checkmark"></span>
+                        Excluir últimas 18 Dezenas (3 Jogos)
+                    </label>
+
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="chkExcluir18Jogos">
+                        <span class="checkmark"></span>
+                        Excluir números dos últimos 18 Concursos
+                    </label>
+
+                    <small id="info-filtro" class="info-text">Nenhum filtro
+                        selecionado.</small>
+                    <button id="btnVerBloqueados" class="btn-secondary"
+                        style="display:none">Ver números excluídos</button>
                 </div>
+
+                <button id="btnGerar" class="btn-primary">GERAR JOGOS</button>
             </div>
 
-            <div class="filter-section">
-                <p style="font-weight: bold; margin-bottom: 10px; color: #555;">
-                    Filtros de Exclusão:</p>
+            <div id="resultado" class="results-area"></div>
 
-                <label class="checkbox-container">
-                    <input type="checkbox" id="chkExcluir18Numeros">
-                    <span class="checkmark"></span>
-                    Excluir últimas 18 Dezenas (3 Jogos)
-                </label>
-
-                <label class="checkbox-container">
-                    <input type="checkbox" id="chkExcluir18Jogos">
-                    <span class="checkmark"></span>
-                    Excluir números dos últimos 18 Concursos
-                </label>
-
-                <small id="info-filtro" class="info-text">Nenhum filtro
-                    selecionado.</small>
-
-                <button id="btnVerBloqueados" class="btn-secondary"
-                    style="display:none">Ver números excluídos</button>
+            <div class="history-actions">
+                <button id="btnVerHistorico" class="btn-outline">Ver Últimos
+                    Resultados da Mega-Sena</button>
             </div>
-
-            <button id="btnGerar" class="btn-primary">GERAR JOGOS</button>
         </div>
 
-        <div id="resultado" class="results-area"></div>
+        <article class="content-section" id="como-funciona">
+            <h2>Como aumentar suas chances na Mega-Sena usando Matemática?</h2>
+            <p>A Mega-Sena é o jogo de loteria mais popular do Brasil, atraindo
+                milhões de apostadores com seus prêmios milionários. Embora seja
+                um jogo de azar, muitos jogadores buscam estratégias baseadas em
+                estatística e probabilidade para tentar otimizar suas apostas.
+            </p>
 
-        <div class="history-actions">
-            <button id="btnVerHistorico" class="btn-outline">Ver Últimos
-                Resultados da Mega-Sena</button>
+            <h3>A Lógica por trás do Gerador de Números Aleatórios</h3>
+            <p>Diferente de escolher números baseados em datas de aniversário
+                (que limitam sua escolha até o número 31), um <strong>Gerador de
+                    Números Aleatórios (RNG)</strong> utiliza algoritmos
+                computacionais para selecionar dezenas em todo o espectro
+                disponível, de 01 a 60. Nosso sistema utiliza a API
+                <code>window.crypto</code>, que garante uma aleatoriedade
+                criptograficamente segura, evitando vícios de repetição comuns
+                em sorteios manuais.</p>
+
+            <h3>Entendendo a Probabilidade</h3>
+            <p>A probabilidade de acertar os 6 números com um jogo simples é de
+                1 em 50.063.860. No entanto, ferramentas de análise histórica
+                podem ajudar a evitar combinações que estatisticamente têm pouca
+                chance de ocorrer, ou filtrar números que acabaram de ser
+                sorteados (embora matematicamente cada sorteio seja um evento
+                independente).</p>
+
+            <h3>O que é a "Teoria dos Números Frios e Quentes"?</h3>
+            <p>Muitos apostadores utilizam a estratégia de excluir as "dezenas
+                quentes" (aquelas que saíram nos últimos concursos) acreditando
+                em uma correção estatística, ou apostar nelas acreditando em
+                tendências. Nossa ferramenta oferece a opção de <strong>excluir
+                    os últimos 18 números sorteados</strong>, permitindo que
+                você teste estratégias baseadas no "atraso" das dezenas.</p>
+
+            <h3>Jogo Responsável</h3>
+            <p>É importante lembrar que loterias são uma forma de
+                entretenimento. Nunca gaste um valor que possa comprometer seu
+                orçamento pessoal. Nenhuma ferramenta pode garantir vitória,
+                pois o sorteio é aleatório. Jogue com moderação.</p>
+        </article>
+
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2025 MegaSenaPro. Todos os direitos reservados.</p>
+            <div class="footer-links">
+                <a href="privacidade.html">Política de Privacidade</a>
+                <a href="termos.html">Termos de Uso</a>
+                <a href="index.html">Contato</a>
+            </div>
+            <p class="disclaimer">Este site não tem vínculo com a Caixa
+                Econômica Federal.</p>
         </div>
+    </footer>
+
+    <div id="cookie-banner" class="cookie-banner">
+        <p>Usamos cookies para melhorar sua experiência e analisar o tráfego. Ao
+            continuar, você concorda com nossa política.</p>
+        <button id="accept-cookies">Aceitar</button>
     </div>
 
     <div id="modalBloqueados" class="modal">
@@ -93,6 +171,20 @@
     </div>
 
     <script src="script.js"></script>
+    <script>
+        // Script simples para o Banner de Cookies
+        const cookieBanner = document.getElementById('cookie-banner');
+        const acceptBtn = document.getElementById('accept-cookies');
+
+        if (!localStorage.getItem('cookiesAccepted')) {
+            cookieBanner.style.display = 'block';
+        }
+
+        acceptBtn.addEventListener('click', () => {
+            localStorage.setItem('cookiesAccepted', 'true');
+            cookieBanner.style.display = 'none';
+        });
+    </script>
 </body>
 
 </html>

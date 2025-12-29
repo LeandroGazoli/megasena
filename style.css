@@ -17,15 +17,16 @@
 body {
   background-color: var(--bg);
   display: flex;
-  justify-content: center;
+  flex-direction: column; /* <--- ESSENCIAL: Coloca um item embaixo do outro */
   min-height: 100vh;
-  padding: 20px;
+  margin: 0; /* Remove margens padrão */
+  padding: 0; /* Remove padding para o menu ir até a borda */
 }
 
 .container {
   background: white;
   width: 100%;
-  max-width: 550px;
+  max-width: 1250px;
   border-radius: 12px;
   padding: 25px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
@@ -265,4 +266,161 @@ th {
   margin-top: 10px;
   font-style: italic;
   min-height: 1.2em; /* Evita pulo de layout */
+}
+
+/* --- ADIÇÕES PARA SITE COMPLETO --- */
+
+/* Navbar */
+.navbar {
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 15px 0;
+  margin-bottom: 30px;
+  width: 100%;
+}
+.nav-container {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+}
+.logo {
+  font-size: 1.5rem;
+  color: #333;
+  font-weight: 700;
+}
+.logo span {
+  color: var(--primary);
+}
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+}
+.nav-links a {
+  text-decoration: none;
+  color: #555;
+  font-weight: 500;
+  transition: 0.2s;
+}
+.nav-links a:hover {
+  color: var(--primary);
+}
+
+/* Layout Geral */
+.main-wrapper {
+  width: 100%;
+  /* max-width: 800px; */
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  padding: 20px; /* <--- Adicionamos o padding aqui */
+  flex: 1; /* <--- Isso empurra o rodapé para o final da página se o conteúdo for curto */
+}
+
+/* Espaço para Anúncios */
+.ad-banner {
+  width: 100%;
+  height: 100px;
+  background: #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+  border-radius: 8px;
+  margin: 10px 0;
+}
+
+/* Conteúdo Editorial (SEO) */
+.content-section {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); /* Sombra igual a do gerador */
+  width: 100%;
+  max-width: 1250px; /* Mesma largura do container do gerador */
+  line-height: 1.6;
+  color: #444;
+}
+.content-section h2 {
+  color: var(--primary);
+  margin-bottom: 15px;
+  font-size: 1.4rem;
+}
+.content-section h3 {
+  color: #333;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+}
+.content-section p {
+  margin-bottom: 15px;
+  text-align: justify;
+}
+
+/* Rodapé */
+footer {
+  margin-top: 50px;
+  width: 100%;
+  background: #333;
+  color: #ddd;
+  padding: 30px 0;
+  text-align: center;
+}
+.footer-links {
+  margin: 15px 0;
+}
+.footer-links a {
+  color: #aaa;
+  margin: 0 10px;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+.footer-links a:hover {
+  color: white;
+}
+.disclaimer {
+  font-size: 0.75rem;
+  color: #777;
+  margin-top: 10px;
+}
+
+/* Cookie Banner */
+.cookie-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: #222;
+  color: white;
+  padding: 15px;
+  text-align: center;
+  display: none; /* Controlado via JS */
+  z-index: 1000;
+}
+.cookie-banner button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  margin-left: 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  width: auto;
+}
+
+/* Responsividade Mobile */
+@media (max-width: 600px) {
+  .nav-container {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .nav-links {
+    gap: 10px;
+    font-size: 0.9rem;
+  }
 }
