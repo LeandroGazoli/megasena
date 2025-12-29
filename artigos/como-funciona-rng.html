@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Como funcionam os Geradores de Números Aleatórios? - MegaSenaPro
+  </title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <h1 class="logo">MegaSena<span>Pro</span></h1>
+      <ul class="nav-links">
+        <li><a href="../index.html">Início</a></li>
+        <li><a href="index.html">Voltar para Artigos</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="main-wrapper">
+    <article class="content-section" style="max-width: 800px;">
+      <h1>Como funcionam os Geradores de Números Aleatórios (RNG)?</h1>
+      <p><em>Publicado em: 28 de Dezembro de 2025</em></p>
+
+      <p>Você sabia que computadores têm dificuldade em serem "aleatórios"? Por
+        serem máquinas lógicas, eles seguem instruções precisas. Se você pedir
+        para um computador "inventar" um número, ele precisará de uma base de
+        cálculo.</p>
+
+      <h3>O Problema do <code>Math.random()</code></h3>
+      <p>A maioria dos sites simples usa uma função básica chamada
+        <code>Math.random()</code>. Ela não é verdadeiramente aleatória; é
+        "pseudo-aleatória". Ela usa o horário atual do relógio como base. Se
+        dois computadores executarem o código no exato mesmo milissegundo, podem
+        gerar o mesmo número. Isso cria padrões previsíveis.</p>
+
+      <h3>A Tecnologia do MegaSenaPro</h3>
+      <p>Nosso gerador utiliza uma tecnologia avançada chamada <strong>CSPRNG
+          (Cryptographically Secure Pseudo-Random Number Generator)</strong>
+        através da API <code>window.crypto</code>.</p>
+      <p>Diferente dos métodos comuns, essa tecnologia busca "entropia" (caos)
+        em fontes externas do seu dispositivo, como:</p>
+      <ul>
+        <li>O movimento imprevisível do seu mouse;</li>
+        <li>A variação térmica do processador;</li>
+        <li>O ruído elétrico dos componentes de hardware.</li>
+      </ul>
+
+      <h3>Por que isso importa?</h3>
+      <p>Ao usar nosso gerador, você garante que seus números não estão seguindo
+        um "vício de programação" ou um padrão repetitivo. Você está obtendo uma
+        sequência numérica tão imprevisível quanto o sorteio físico das bolas no
+        globo da Caixa.</p>
+    </article>
+  </div>
+
+  <footer>
+    <div class="footer-content">
+      <p>&copy; 2025 MegaSenaPro.</p>
+    </div>
+  </footer>
+</body>
+
+</html>
