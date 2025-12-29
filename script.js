@@ -1,9 +1,9 @@
 class GeradorMegaSena {
     constructor() {
-        // Novo Link Fornecido
+        // Link atualizado
         this.API_URL = 'https://raw.githubusercontent.com/eitchtee/loterias.json/refs/heads/main/data/mega-sena.json';
         this.historico = [];
-        this.numerosBloqueados = new Set(); // Números dos últimos 18 jogos
+        this.numerosBloqueados = new Set();
         this.status = "carregando";
     }
 
@@ -13,48 +13,68 @@ class GeradorMegaSena {
             statusEl.innerText = "🔄 Baixando histórico atualizado...";
             
             const response = await fetch(this.API_URL);
-            if (!response.ok) throw new Error("Erro na rede");
+            if (!response.ok) throw new Error("Erro na rede ao baixar JSON");
             
-            // O JSON fornecido tem estrutura direta de array de objetos
-            const dados = await response.json();
-            
-            // Ordenar por concurso decrescente (do mais novo para o mais velho)
-            // A estrutura do JSON parece usar 'numero' ou 'concurso'. Vamos garantir.
-            this.historico = dados.sort((a, b) => b.concurso - a.concurso);
+            let dados = await response.json();
 
+            // === AJUSTE PRINCIPAL AQUI ===
+            // Mapeamos a propriedade "resultado" (do seu JSON) para "dezenas" (uso interno)
+            this.historico = dados.map(item => {
+                return {
+                    concurso: item.concurso || item.Concurso || 0,
+                    data: item.data || item.Data || 'Data desc.',
+                    // Aqui está a correção: ele busca 'resultado', se não achar tenta 'dezenas'
+                    dezenas: item.resultado || item.dezenas || item.Dezenas || [] 
+                };
+            });
+
+            // Ordenar por concurso decrescente (do mais novo para o mais velho)
+            this.historico.sort((a, b) => b.concurso - a.concurso);
+
+            // Agora processamos os últimos 18
             this.processarUltimos18();
             
             this.status = "pronto";
-            statusEl.innerHTML = `✅ Base atualizada: <b>${this.historico[0].concurso}</b> concursos.`;
-            statusEl.style.color = "#209869";
             
-            // Atualizar UI com números bloqueados
+            if (this.historico.length > 0) {
+                statusEl.innerHTML = `✅ Base atualizada: <b>${this.historico[0].concurso}</b> concursos carregados.`;
+                statusEl.style.color = "#209869";
+            } else {
+                throw new Error("JSON vazio");
+            }
+            
             this.atualizarModalBloqueados();
             this.atualizarTabelaHistorico();
 
         } catch (error) {
-            console.error(error);
+            console.error("Erro detalhado:", error);
             this.status = "erro";
-            statusEl.innerText = "⚠️ Erro ao baixar dados. O gerador funcionará sem validação.";
+            statusEl.innerText = "⚠️ Erro ao ler dados. O filtro e validação foram desativados.";
             statusEl.style.color = "#d9534f";
         }
     }
 
     processarUltimos18() {
-        // Pega os primeiros 18 elementos do histórico (que já está ordenado decrescente)
+        if (!this.historico || this.historico.length === 0) return;
+
+        // Pega os primeiros 18 concursos mais recentes
         const ultimos18 = this.historico.slice(0, 18);
         
         this.numerosBloqueados.clear();
         
         ultimos18.forEach(sorteio => {
-            sorteio.dezenas.forEach(dezena => {
-                // Converte para inteiro para garantir unicidade e limpa zeros extras se houver
-                this.numerosBloqueados.add(parseInt(dezena));
-            });
+            if (Array.isArray(sorteio.dezenas)) {
+                sorteio.dezenas.forEach(dezena => {
+                    // Converte string "05" para número 5
+                    this.numerosBloqueados.add(parseInt(dezena));
+                });
+            }
         });
 
         const contadorEl = document.getElementById('info-filtro');
-        contadorEl.innerText = `Existem ${this.numerosBloqueados.size} dezenas únicas nos últimos 18 sorteios.`;
+        if(contadorEl) {
+            contadorEl.innerText = `Existem ${this.numerosBloqueados.size} dezenas únicas nos últimos 18 sorteios.`;
+        }
     }
 
     _indiceAleatorioSeguro(range) {
@@ -70,36 +90,27 @@ class GeradorMegaSena {
     }
 
     gerarJogo(qtdDezenas, excluirUltimos18) {
-        // 1. Criar o Pool de números disponíveis (1 a 60)
         let pool = [];
         
+        // Cria pool de 1 a 60
         for (let i = 1; i <= 60; i++) {
-            // Se a opção de excluir estiver ativa E o número estiver na lista de bloqueados, pula ele
+            // Se checkbox marcado E número está na lista de bloqueados, pula
             if (excluirUltimos18 && this.numerosBloqueados.has(i)) {
                 continue;
             }
             pool.push(i);
         }
 
-        // Validação de Segurança: Se sobraram menos números do que o necessário para preencher o cartão
         if (pool.length < qtdDezenas) {
-            throw new Error(`Não há números suficientes disponíveis. O filtro removeu ${this.numerosBloqueados.size} números.`);
+            throw new Error(`Filtro muito restritivo. Sobraram apenas ${pool.length} números.`);
         }
 
-        // 2. Embaralhamento Fisher-Yates no pool filtrado
-        // Convertemos para Uint32 para o algoritmo seguro
-        // Como o array muda de tamanho dinamicamente, vamos fazer swap manual
-        
         const resultado = [];
-        
-        // Copia do pool para manipular
         let poolDisponivel = [...pool];
 
         for (let i = 0; i < qtdDezenas; i++) {
             const range = poolDisponivel.length;
             const indiceSorteado = this._indiceAleatorioSeguro(range);
-            
-            // Pega o número e remove do pool disponível
             resultado.push(poolDisponivel[indiceSorteado]);
             poolDisponivel.splice(indiceSorteado, 1);
         }
@@ -112,15 +123,17 @@ class GeradorMegaSena {
         const assinatura = jogoGerado.join('-');
         
         return this.historico.find(s => {
-            // Garante formatação para comparação
+            if (!Array.isArray(s.dezenas)) return false;
+            // Padroniza as dezenas do histórico para comparar com o jogo gerado
             const dezenasFormatadas = s.dezenas.map(d => parseInt(d).toString().padStart(2, '0')).sort().join('-');
             return dezenasFormatadas === assinatura;
         });
     }
 
-    // --- Métodos de UI ---
     atualizarModalBloqueados() {
         const container = document.getElementById('listaBloqueados');
+        if(!container) return;
+
         const arrayBloqueados = Array.from(this.numerosBloqueados).sort((a,b) => a-b);
         
         container.innerHTML = arrayBloqueados
@@ -130,36 +143,37 @@ class GeradorMegaSena {
 
     atualizarTabelaHistorico() {
         const tbody = document.querySelector('#tabelaHistorico tbody');
-        // Pega apenas os últimos 50 para não pesar a DOM
+        if(!tbody) return;
+
         const ultimos50 = this.historico.slice(0, 50);
         
         tbody.innerHTML = ultimos50.map(s => `
             <tr>
                 <td>${s.concurso}</td>
                 <td>${s.data}</td>
-                <td style="font-weight:bold; color: #209869;">${s.dezenas.map(d=>d.toString().padStart(2,'0')).join(' - ')}</td>
+                <td style="font-weight:bold; color: #209869;">
+                    ${Array.isArray(s.dezenas) ? s.dezenas.map(d => d.toString().padStart(2,'0')).join(' - ') : '-'}
+                </td>
             </tr>
         `).join('');
     }
 }
 
-// --- Inicialização e Eventos ---
+// Inicialização
 document.addEventListener('DOMContentLoaded', () => {
     const app = new GeradorMegaSena();
     app.iniciar();
 
-    // Referências DOM
     const btnGerar = document.getElementById('btnGerar');
     const chkExcluir = document.getElementById('chkExcluirRecentes');
     const modalBloq = document.getElementById('modalBloqueados');
     const modalHist = document.getElementById('modalHistorico');
     const resultadoDiv = document.getElementById('resultado');
 
-    // Botão Gerar
     btnGerar.addEventListener('click', () => {
         const qtdJogos = parseInt(document.getElementById('qtdJogos').value);
         const qtdDezenas = parseInt(document.getElementById('qtdDezenas').value);
-        const excluirRecentes = chkExcluir.checked;
+        const excluirRecentes = chkExcluir ? chkExcluir.checked : false;
 
         if (qtdDezenas < 6 || qtdDezenas > 15) {
             alert("Escolha entre 6 e 15 dezenas.");
@@ -195,9 +209,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Controles dos Modais
-    document.getElementById('btnVerBloqueados').onclick = () => modalBloq.style.display = "block";
-    document.getElementById('btnVerHistorico').onclick = () => modalHist.style.display = "block";
+    const btnVerBloq = document.getElementById('btnVerBloqueados');
+    if(btnVerBloq) btnVerBloq.onclick = () => modalBloq.style.display = "block";
+    
+    const btnVerHist = document.getElementById('btnVerHistorico');
+    if(btnVerHist) btnVerHist.onclick = () => modalHist.style.display = "block";
     
     document.querySelectorAll('.close').forEach(el => {
         el.onclick = function() { this.parentElement.parentElement.style.display = "none"; }
