@@ -3,30 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador Mega-Sena Seguro</title>
+    <title>Gerador Mega-Sena Profissional</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div class="container">
-        <h2>Gerador Mega-Sena</h2>
-        <p>Utilizando <code>window.crypto</code> para entropia real e algoritmo Fisher-Yates.</p>
+        <header>
+            <h2>Gerador Mega-Sena</h2>
+            <p id="status-api">Conectando à base de dados...</p>
+        </header>
         
-        <div class="controls">
-            <div class="input-group">
-                <label for="qtdJogos">Jogos:</label>
-                <input type="number" id="qtdJogos" value="3" min="1" max="50">
+        <div class="controls-card">
+            <div class="input-row">
+                <div class="input-group">
+                    <label>Jogos:</label>
+                    <input type="number" id="qtdJogos" value="3" min="1" max="50">
+                </div>
+                <div class="input-group">
+                    <label>Dezenas:</label>
+                    <input type="number" id="qtdDezenas" value="6" min="6" max="15">
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <label class="checkbox-container">
+                    <input type="checkbox" id="chkExcluirRecentes">
+                    <span class="checkmark"></span>
+                    Excluir números dos últimos 18 sorteios
+                </label>
+                <small id="info-filtro" class="info-text">Isso removerá as dezenas que saíram recentemente do sorteio.</small>
+                
+                <button id="btnVerBloqueados" class="btn-secondary">Ver quais números serão excluídos</button>
             </div>
             
-            <div class="input-group">
-                <label for="qtdDezenas">Dezenas:</label>
-                <input type="number" id="qtdDezenas" value="6" min="6" max="15">
-            </div>
-            
-            <button id="btnGerar">Gerar Jogos</button>
+            <button id="btnGerar" class="btn-primary">GERAR JOGOS</button>
         </div>
 
-        <div id="resultado"></div>
+        <div id="resultado" class="results-area"></div>
+
+        <div class="history-actions">
+            <button id="btnVerHistorico" class="btn-outline">Ver Últimos Resultados da Mega-Sena</button>
+        </div>
+    </div>
+
+    <div id="modalBloqueados" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Números dos últimos 18 Sorteios</h3>
+            <p>Se a opção estiver marcada, estes números <strong>NÃO</strong> aparecerão nos seus jogos.</p>
+            <div id="listaBloqueados" class="tags-container"></div>
+        </div>
+    </div>
+
+    <div id="modalHistorico" class="modal">
+        <div class="modal-content large">
+            <span class="close">&times;</span>
+            <h3>Últimos Resultados</h3>
+            <div class="table-responsive">
+                <table id="tabelaHistorico">
+                    <thead>
+                        <tr>
+                            <th>Concurso</th>
+                            <th>Data</th>
+                            <th>Dezenas</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>
